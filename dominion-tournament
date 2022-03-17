@@ -1,0 +1,65 @@
+#!/usr/bin/python3
+
+import argparse
+
+import core.cards
+import core.engine
+
+from strategy import strategies
+
+DEFAULT_STRATEGIES = [
+    "demo.BigMoney", "demo.Discarder", "demo.Gardener", "demo.Attacker"
+]
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-n", "--ngames", type=int, default=1000,
+    help="Number of games to play")
+parser.add_argument("-s", "--strategies", choices=strategies.keys(),
+    nargs='*', default=DEFAULT_STRATEGIES,
+    help="List of player's strategies in game, 2 to 4")
+parser.add_argument("-k", "--kingdom", nargs='*', type=str, default=[],
+    help="List of kingdom cards by their names")
+parser.add_argument
+
+args = parser.parse_args()
+
+
+counts = {}
+players = []
+for strategy in args.strategies:
+    counts[strategy] = counts.get(strategy, 0) + 1
+    players.append({
+        "strategy": strategy,
+        "name": "{} #{}".format(strategy, counts[strategy]),
+        "wins": 0,
+        "scores": 0,
+        "cards": 0,
+        "rank": 0
+    })
+
+players_strategies = [strategies[player["strategy"]] for player in players]
+
+for ngame in range(1, args.ngames+1):
+    if ngame % 100 == 1:
+        print("Playing game {} / {}...".format(ngame, args.ngames))
+    game = core.engine.Game(players_strategies, card_types=args.kingdom)
+    game.run(print_scores=False)
+    table = game.scoreTable()
+    for nplayer, (scores, turns, cards, rank, winner) in table.items():
+        players[nplayer-1]["wins"] += int(winner)
+        players[nplayer-1]["scores"] += scores
+        players[nplayer-1]["cards"] += cards
+        players[nplayer-1]["rank"] += rank
+
+for player in players:
+    player["scores"] = float(player["scores"]) / args.ngames
+    player["cards"] = float(player["cards"]) / args.ngames
+    player["rank"] = float(player["rank"]) / args.ngames
+
+players.sort(key=lambda x: (x["wins"], -x["rank"]), reverse=True)
+
+print("{}\t{:16s}\t{}\t{}\t{}\t{}".format(
+    "RANK", "STRATEGY", "WINS", "SCORES", "CARDS", "RANK"))
+for rank, player in enumerate(players, 1):
+    print("{}\t{:16s}\t{}\t{}\t{}\t{}".format(rank, player["name"],
+        player["wins"], player["scores"], player["cards"], player["rank"]))

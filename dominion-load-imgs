@@ -1,0 +1,69 @@
+#!/usr/bin/python3
+
+import sys
+import re
+import os
+import os.path
+import io
+import urllib.request
+
+import PIL.Image as Image
+import PIL.ImageOps as ImageOps
+
+BASE_URL = 'http://wiki.dominionstrategy.com'
+LIST_PATH = '/index.php/List_of_cards'
+
+IMG_PATH = re.compile('src="(?P<path>/images/thumb/[^"]+/200px\\-[^.]+?\\.jpg)"')
+IMG_NAME = re.compile('200px\\-(?P<name>[^\\.]+)\\.jpg')
+
+BACK_PATH = '/images/c/ca/Card_back.jpg'
+
+img_dir = "./img"
+if len(sys.argv) >= 2:
+    img_dir = sys.argv[1]
+
+try:
+    os.makedirs(img_dir)
+except FileExistsError:
+    pass
+
+
+def load_page(path, encoding=None):
+    url = "{}{}".format(BASE_URL, path)
+    print("Loading url: {}".format(url))
+    data = urllib.request.urlopen(url).read()
+    if encoding is None:
+        return data
+    return data.decode(encoding)
+
+
+def load_img(path):
+    im_data = load_page(path)
+    im = Image.open(io.BytesIO(im_data))
+    im = im.resize((200, 320), resample=Image.ANTIALIAS)
+    
+    if path == BACK_PATH:
+        name = "_back"
+    else:
+        name = IMG_NAME.search(path).group("name")\
+               .replace("-", "")\
+               .replace("_", "")\
+               .replace("'", "")\
+               .replace("%27", "")\
+               .lower()
+    fname = os.path.join(img_dir, "{}.png".format(name))
+    im.save(fname)
+    
+    if name == "_back":
+        im_gray = ImageOps.grayscale(im)
+        im_gray.save(os.path.join(img_dir, "_back_mono.png"))
+
+
+cards_list = load_page(LIST_PATH, 'utf8')
+img_paths = IMG_PATH.findall(cards_list)
+img_paths.insert(0, BACK_PATH)
+
+for n, img_path in enumerate(img_paths, 1):
+    print("Loading image {} / {}".format(n, len(img_paths)))
+    load_img(img_path)
+

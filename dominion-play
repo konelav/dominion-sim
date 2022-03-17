@@ -1,0 +1,38 @@
+#!/usr/bin/python3
+
+import argparse
+
+import core.cards
+import core.engine
+
+from strategy import strategies
+
+DEFAULT_STRATEGIES = [
+    "human.GUI", "demo.Attacker", "demo.Gardener", "demo.Random"
+]
+DEFAULT_KINGDOM = [
+    "moat", "chapel", "militia", "witch", "thief", "gardens", "woodcutter", "workshop", "market", "village"
+]
+SETS = [getattr(getattr(core.cards, name), 'setname', None)
+    for name in dir(core.cards)
+]
+SETS = list(sorted(set([s.lower() for s in SETS if s is not None])))
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-s", "--strategies", choices=strategies.keys(),
+    nargs='*', default=DEFAULT_STRATEGIES,
+    help="List of player's strategies in game, 2 to 4")
+parser.add_argument("-k", "--kingdom", nargs='*', type=str, default=DEFAULT_KINGDOM,
+    help="List of kingdom cards by their names")
+parser.add_argument("--set", choices=SETS,
+    nargs='*', default=['base'],
+    help="List of card sets")
+parser.add_argument
+
+args = parser.parse_args()
+
+players = [strategies[s] for s in args.strategies]
+
+
+game = core.engine.Game(players, card_types=args.kingdom)
+game.run()
