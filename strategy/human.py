@@ -640,7 +640,7 @@ class GUI(CLI):
             self.wnd.destroy()
             self.wnd = None
     
-    def __init__(self, game, tiny=True, tiny_scale=2):
+    def __init__(self, game, tiny=True, tiny_scale=3):
         CLI.__init__(self, game)
         
         self.tiny = tiny

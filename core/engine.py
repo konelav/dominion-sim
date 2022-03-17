@@ -273,7 +273,7 @@ class Game(object):
         
         self.supply = PiledZone()
         for card_type in card_types:
-            if card_type in (cards.Estate, cards.Duchy, cards.Province):
+            if card_type.hasType(cards.Victory):
                 count = victory_cnt
             else:
                 count = rules.ACTION_CARDS
@@ -282,8 +282,7 @@ class Game(object):
         self.supply.createPile(cards.Curse,
             rules.TOTAL_CURSE_CARDS_PER_PLAYER * (nplayers - 1))
         
-        self.supply.createPile(cards.Copper, rules.TOTAL_COPPER_CARDS +
-            rules.INITIAL_COPPER * nplayers)
+        self.supply.createPile(cards.Copper, rules.TOTAL_COPPER_CARDS)
         self.supply.createPile(cards.Silver, rules.TOTAL_SILVER_CARDS)
         self.supply.createPile(cards.Gold, rules.TOTAL_GOLD_CARDS)
         
